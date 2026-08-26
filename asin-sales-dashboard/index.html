@@ -1,0 +1,2537 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ASIN数据监控</title>
+  <style>
+    :root {
+      --bg: #f4f8fa;
+      --panel: #ffffff;
+      --line: #dfe8ed;
+      --line-strong: #c9d8df;
+      --ink: #10202b;
+      --muted: #6b7d89;
+      --teal: #0e8f80;
+      --teal-dark: #09675f;
+      --blue: #1f6fae;
+      --blue-soft: #eaf4fb;
+      --green-soft: #e8f6f1;
+      --empty: #eef4f7;
+      --shadow: 0 12px 30px rgba(16, 32, 43, 0.07);
+      --filter-input-width: 420px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Aptos", "Segoe UI", "Microsoft YaHei", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input, select { font: inherit; }
+
+    .shell {
+      max-width: 1680px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .page {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: center;
+      padding: 22px 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.2;
+      font-weight: 800;
+      letter-spacing: 0;
+    }
+
+    .sub {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .tabs {
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fbfc;
+    }
+
+    .tabs button {
+      height: 38px;
+      min-width: 76px;
+      padding: 0 14px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .tabs button:last-child { border-right: 0; }
+    .tabs button.active { background: var(--teal-dark); color: #fff; }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    section {
+      padding: 22px 26px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.2;
+    }
+
+    .note {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .overview {
+      background: linear-gradient(180deg, #fbfdfe 0%, #f7fbfa 100%);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .kpi {
+      min-height: 112px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi label {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .kpi strong {
+      display: block;
+      margin-top: 10px;
+      font-size: 28px;
+      line-height: 1;
+      color: #0c2e48;
+      overflow-wrap: anywhere;
+    }
+
+    .kpi span {
+      margin-top: 8px;
+      color: var(--teal);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .table-tools {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .search {
+      width: var(--filter-input-width);
+      max-width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .export-btn {
+      height: 38px;
+      border: 1px solid #b9ded4;
+      border-radius: 8px;
+      padding: 0 14px;
+      background: #effaf5;
+      color: #087f5b;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .export-btn:hover {
+      background: #dff5ec;
+      border-color: #78c9b2;
+    }
+
+    .history-tools {
+      flex-wrap: nowrap;
+    }
+
+    .history-tools .search {
+      width: var(--filter-input-width);
+    }
+
+    .table-shell {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: auto;
+      max-height: 680px;
+      background: #fff;
+    }
+
+    table {
+      width: max-content;
+      min-width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 12px;
+      vertical-align: middle;
+      background: #fff;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      height: 46px;
+      background: #f7fafc;
+      color: #425563;
+      text-align: left;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    tr:hover td { background: #fbfdfd; }
+
+    .asin-col {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      min-width: 270px;
+      max-width: 270px;
+      border-right: 1px solid var(--line);
+    }
+
+    th.asin-col,
+    th.month-col,
+    th.delta-col {
+      z-index: 4;
+    }
+
+    .asin-cell {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+    }
+
+    .thumb {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      object-fit: contain;
+      display: block;
+    }
+
+    .thumb-fallback {
+      width: 48px;
+      height: 48px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(135deg, #dff4ef, #dbeefb);
+      color: var(--teal-dark);
+      font-weight: 900;
+      border: 1px solid var(--line);
+    }
+
+    .asin-code {
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--ink);
+      white-space: nowrap;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .asin-code:hover {
+      color: var(--teal-dark);
+      text-decoration: none;
+    }
+
+    .asin-code:focus-visible {
+      outline: 2px solid rgba(14, 143, 128, 0.35);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    .product {
+      margin-top: 4px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .product-link {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .product-link:hover {
+      color: var(--teal-dark);
+      text-decoration: none;
+    }
+
+    .parent-tag {
+      display: inline-block;
+      margin-top: 5px;
+      padding: 2px 6px;
+      border: 1px solid #cfe8df;
+      border-radius: 6px;
+      background: #effaf5;
+      color: #087f5b;
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .month-col {
+      position: sticky;
+      z-index: 1;
+      min-width: 118px;
+      max-width: 118px;
+      text-align: right;
+      white-space: nowrap;
+      border-right: 1px solid var(--line);
+    }
+
+    .month-col.month-0 { left: 270px; }
+    .month-col.month-1 { left: 388px; }
+
+    .delta-col {
+      position: sticky;
+      left: 506px;
+      z-index: 1;
+      min-width: 118px;
+      max-width: 118px;
+      text-align: right;
+      white-space: nowrap;
+      border-right: 1px solid var(--line-strong);
+      background: #fff;
+    }
+
+    .month-col.past-month {
+      background: #f7fafb;
+      color: #7d8d97;
+    }
+
+    .month-col.past-month strong {
+      color: #60737f;
+      font-size: 16px;
+      font-weight: 800;
+    }
+
+    .month-col.past-month span {
+      color: #91a0a8;
+    }
+
+    .month-col.current-month {
+      background: #fbfefe;
+    }
+
+    .month-col strong {
+      display: block;
+      color: #0c2e48;
+      font-size: 18px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .month-col span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .delta-col strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .delta-col span {
+      display: block;
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .delta-col.positive strong {
+      color: #087f5b;
+    }
+
+    .delta-col.negative strong {
+      color: #c92a2a;
+    }
+
+    .delta-col.neutral strong {
+      color: var(--muted);
+    }
+
+    .sort-btn {
+      width: 100%;
+      min-height: 26px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font-weight: 800;
+      text-align: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .day-head .sort-btn {
+      justify-content: center;
+    }
+
+    .month-col .sort-btn,
+    .delta-col .sort-btn {
+      justify-content: flex-end;
+    }
+
+    .heat-month-head {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 2px;
+    }
+
+    .heat-month-select {
+      width: 72px;
+      height: 30px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      padding: 0 4px;
+      outline: none;
+      background: #fff;
+      color: inherit;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .heat-month-select:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 2px rgba(14, 143, 128, 0.14);
+    }
+
+    .heat-month-sort {
+      width: 20px;
+      height: 30px;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: var(--teal);
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .asin-col .sort-btn {
+      justify-content: flex-start;
+    }
+
+    .sort-mark {
+      color: var(--teal);
+      font-size: 11px;
+      line-height: 1;
+      min-width: 9px;
+    }
+
+    .day-head {
+      min-width: 76px;
+      text-align: center;
+    }
+
+    .day-cell {
+      min-width: 76px;
+      padding: 8px 6px;
+    }
+
+    .heat {
+      width: 68px;
+      height: 46px;
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      text-align: center;
+      line-height: 1.08;
+      color: #08352f;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      border: 1px solid rgba(7, 79, 72, 0.04);
+      cursor: default;
+    }
+
+    .heat.empty {
+      background: var(--empty);
+      color: #9aacb7;
+      border-color: #dde8ee;
+    }
+
+    .heat.has-note {
+      border-color: rgba(14, 143, 128, 0.55) !important;
+      box-shadow: 0 0 0 2px rgba(14, 143, 128, 0.16), 0 0 12px rgba(14, 143, 128, 0.28);
+      cursor: text;
+    }
+
+    .heat .sales {
+      display: block;
+      font-size: 10px;
+    }
+
+    .heat .units {
+      display: block;
+      margin-top: 3px;
+      font-size: 11px;
+      opacity: 0.88;
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .legend-bar {
+      width: 120px;
+      height: 10px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #e0f3ec, #58c878, #087f73);
+    }
+
+    .history-section {
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .history-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfe;
+      padding: 16px;
+    }
+
+    .history-summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .history-chip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 14px;
+    }
+
+    .history-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .history-chip strong {
+      display: block;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .refund-section {
+      border-top: 1px solid #efd8cf;
+      background:
+        linear-gradient(135deg, rgba(184, 74, 58, 0.045), transparent 34%),
+        #fffaf7;
+    }
+
+    .refund-card {
+      border: 1px solid #ead7d0;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.92);
+      padding: 16px;
+      box-shadow: 0 10px 24px rgba(108, 55, 43, 0.045);
+    }
+
+    .refund-tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid #ead7d0;
+      border-radius: 9px;
+      background: #f8ede8;
+    }
+
+    .refund-tab {
+      border: 0;
+      border-radius: 6px;
+      padding: 8px 16px;
+      background: transparent;
+      color: #7e5a50;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .refund-tab.active {
+      background: #a94738;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(169, 71, 56, 0.2);
+    }
+
+    .refund-summary {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .refund-chip {
+      min-width: 0;
+      border: 1px solid #eadbd5;
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 13px;
+    }
+
+    .refund-chip.money {
+      border-color: #e2bfb4;
+      background: linear-gradient(180deg, #fff, #fff8f5);
+    }
+
+    .refund-chip span,
+    .refund-chip small {
+      display: block;
+      color: #86685f;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .refund-chip strong {
+      display: block;
+      margin: 5px 0 3px;
+      color: #352824;
+      font-size: 20px;
+      line-height: 1.1;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .refund-chip.money strong {
+      color: #9c3f31;
+    }
+
+    .refund-panel[hidden] {
+      display: none;
+    }
+
+    .refund-month-wrap,
+    .refund-detail-wrap {
+      border: 1px solid #eadbd5;
+      border-radius: 8px;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .refund-month-wrap {
+      max-height: 390px;
+      margin-bottom: 16px;
+    }
+
+    .refund-month-table,
+    .refund-detail-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .refund-month-table {
+      min-width: 940px;
+    }
+
+    .refund-detail-table {
+      min-width: 1900px;
+    }
+
+    .refund-month-table th,
+    .refund-month-table td,
+    .refund-detail-table th,
+    .refund-detail-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #eee2dd;
+      text-align: center;
+      font-size: 12px;
+      white-space: nowrap;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .refund-month-table th,
+    .refund-detail-table th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f6ebe7;
+      color: #644a42;
+      font-weight: 900;
+    }
+
+    .refund-month-table tbody tr,
+    .refund-detail-table tbody tr {
+      transition: background 0.12s ease;
+    }
+
+    .refund-month-table tbody tr:hover td,
+    .refund-month-table tbody tr.selected td,
+    .refund-detail-table tbody tr:hover td {
+      background: #fff5f1;
+    }
+
+    .refund-month-table tbody tr.selected td:first-child {
+      box-shadow: inset 4px 0 0 #a94738;
+    }
+
+    .refund-month-table tbody tr:last-child td,
+    .refund-detail-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .refund-month-select {
+      border: 1px solid #d8b9af;
+      border-radius: 6px;
+      padding: 5px 10px;
+      background: #fff;
+      color: #8f3d31;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .refund-detail-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 4px 0 10px;
+    }
+
+    .refund-detail-head strong {
+      color: #49342e;
+      font-size: 14px;
+    }
+
+    .refund-detail-head span {
+      color: #8b6d64;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .refund-product-cell,
+    .refund-comment-cell {
+      white-space: normal !important;
+      text-align: left !important;
+    }
+
+    .refund-product-cell {
+      min-width: 280px;
+      max-width: 360px;
+    }
+
+    .refund-product-cell a {
+      display: block;
+      color: #8f3d31;
+      font-weight: 900;
+      text-decoration: none;
+    }
+
+    .refund-product-cell span {
+      display: -webkit-box;
+      margin-top: 3px;
+      overflow: hidden;
+      color: #647783;
+      font-size: 11px;
+      line-height: 1.35;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+    }
+
+    .refund-comment-cell {
+      min-width: 240px;
+      max-width: 320px;
+      color: #5f6d74;
+      line-height: 1.35;
+    }
+
+    .refund-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 22px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: #f2f5f6;
+      color: #536771;
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    .refund-badge.matched {
+      background: #e6f5ef;
+      color: #16735f;
+    }
+
+    .refund-badge.unmatched {
+      background: #fff0eb;
+      color: #a84636;
+    }
+
+    .refund-amount {
+      color: #9c3f31;
+      font-weight: 900;
+    }
+
+    .refund-merged {
+      color: #9a7d74;
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .daily-ad-section {
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .daily-ad-table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: auto;
+      max-height: 560px;
+    }
+
+    .daily-ad-table {
+      width: 100%;
+      min-width: 1120px;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .daily-ad-table th,
+    .daily-ad-table td {
+      height: 46px;
+      padding: 10px 14px;
+      text-align: center;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .daily-ad-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .daily-ad-table tfoot td {
+      position: sticky;
+      bottom: 0;
+      z-index: 1;
+      border-top: 1px solid var(--line-strong);
+      border-bottom: 0;
+      background: #f2f8f7;
+      color: var(--ink);
+      font-weight: 900;
+    }
+
+    .daily-ad-sort-btn {
+      width: 100%;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .daily-ad-sort-btn .sort-mark {
+      color: var(--teal);
+    }
+
+    .history-chart {
+      min-height: 290px;
+      padding: 6px 0 14px;
+      overflow-x: auto;
+    }
+
+    .history-line-chart {
+      display: block;
+      min-width: 860px;
+      width: 100%;
+      height: 286px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    .history-grid-line {
+      stroke: #e6eef1;
+      stroke-width: 1;
+    }
+
+    .history-axis-label,
+    .history-point-label {
+      fill: #526975;
+      font-size: 11px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .history-point-label {
+      fill: var(--ink);
+      text-anchor: middle;
+    }
+
+    .history-line {
+      fill: none;
+      stroke: #0b8f76;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .history-area {
+      fill: rgba(24, 180, 142, 0.14);
+    }
+
+    .history-point {
+      fill: #0b8f76;
+      stroke: #fff;
+      stroke-width: 3;
+    }
+
+    .history-line.ad-sales {
+      stroke: #1f6fae;
+      stroke-dasharray: 8 5;
+    }
+
+    .history-line.ad-spend {
+      stroke: #d97706;
+      stroke-dasharray: 4 5;
+    }
+
+    .history-point.ad-sales {
+      fill: #1f6fae;
+    }
+
+    .history-point.ad-spend {
+      fill: #d97706;
+    }
+
+    .history-hover-zone {
+      fill: transparent;
+      cursor: crosshair;
+    }
+
+    .history-hover-marker {
+      opacity: 0;
+      transition: opacity 0.12s ease;
+      pointer-events: none;
+    }
+
+    .history-hover-group:hover .history-hover-marker,
+    .history-hover-group.is-linked .history-hover-marker {
+      opacity: 1;
+    }
+
+    .history-hover-line {
+      stroke: #8aa0aa;
+      stroke-width: 1.5;
+      stroke-dasharray: 4 4;
+    }
+
+    .history-hover-dot {
+      stroke: #fff;
+      stroke-width: 4;
+    }
+
+    .history-tooltip-box {
+      fill: #10202b;
+      stroke: rgba(255, 255, 255, 0.28);
+      stroke-width: 1;
+      filter: drop-shadow(0 8px 16px rgba(16, 32, 43, 0.18));
+    }
+
+    .history-tooltip-title {
+      fill: #fff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .history-tooltip-text {
+      fill: #d8e5ea;
+      font-size: 11px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .history-legend {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .history-legend button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 0;
+      padding: 4px 2px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font: inherit;
+      font-weight: inherit;
+    }
+
+    .history-legend button.off {
+      opacity: 0.42;
+    }
+
+    .history-legend i {
+      width: 20px;
+      height: 3px;
+      border-radius: 999px;
+      background: #0b8f76;
+    }
+
+    .history-legend .ad-sales i {
+      background: #1f6fae;
+    }
+
+    .history-legend .ad-spend i {
+      background: #d97706;
+    }
+
+    .history-table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: auto;
+      background: #fff;
+    }
+
+    .history-table {
+      min-width: 1180px;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+    }
+
+    .history-table th,
+    .history-table td {
+      padding: 7px 8px;
+      border-bottom: 1px solid var(--line);
+      text-align: center;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .history-table th:first-child,
+    .history-table td:first-child {
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .history-table .group-head th {
+      text-align: center;
+      background: #eef5f7;
+      color: #263f4a;
+      font-size: 11px;
+      letter-spacing: 0;
+    }
+
+    .history-table .field-head th {
+      top: 38px;
+    }
+
+    .history-sort-btn {
+      width: 100%;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 3px;
+    }
+
+    .history-sort-btn .sort-mark {
+      color: var(--teal);
+    }
+
+    .history-table .group-start {
+      border-left: 2px solid var(--line-strong);
+    }
+
+    .history-table .month-boundary {
+      border-right: 2px solid var(--line-strong);
+    }
+
+    .history-table tbody tr {
+      transition: background 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .history-table tbody tr:hover td,
+    .history-table tbody tr.is-linked td {
+      background: #eef8f5;
+      box-shadow: inset 0 1px 0 rgba(14, 143, 128, 0.12), inset 0 -1px 0 rgba(14, 143, 128, 0.12);
+    }
+
+    .history-table tbody tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .ad-section {
+      border-top: 1px solid var(--line);
+      background: #fbfdfe;
+    }
+
+    .ad-period-select {
+      width: 150px;
+    }
+
+    .ad-summary {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ad-chip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 14px;
+    }
+
+    .ad-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .ad-chip strong {
+      display: block;
+      color: var(--ink);
+      font-size: 21px;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .ad-chip.highlight {
+      border-color: #78c9b2;
+      background: #effaf5;
+    }
+
+    .ad-chip.highlight span {
+      color: #087f5b;
+    }
+
+    .ad-chip.highlight strong {
+      color: #09675f;
+      font-size: 24px;
+    }
+
+    .ad-tables {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .ad-table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: auto;
+      background: #fff;
+      max-height: 420px;
+    }
+
+    .ad-table {
+      width: 100%;
+      min-width: 720px;
+      border-collapse: separate;
+      border-spacing: 0;
+      table-layout: fixed;
+    }
+
+    .ad-table th,
+    .ad-table td {
+      padding: 6px 7px;
+      border-bottom: 1px solid var(--line);
+      font-size: 11px;
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .ad-sort-btn {
+      width: 100%;
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-weight: inherit;
+      text-align: inherit;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      position: relative;
+      padding: 0 12px;
+    }
+
+    .ad-table th:first-child .ad-sort-btn {
+      justify-content: flex-start;
+      padding-left: 0;
+    }
+
+    .ad-sort-btn .sort-mark {
+      color: var(--teal);
+      position: absolute;
+      right: 0;
+      width: 10px;
+      text-align: center;
+    }
+
+    .ad-table th:first-child,
+    .ad-table td:first-child {
+      text-align: left;
+      width: 180px;
+      max-width: 180px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ad-table.compact-first th:first-child,
+    .ad-table.compact-first td:first-child {
+      width: 130px;
+      max-width: 130px;
+    }
+
+    .ad-table.ad-asin-table th:first-child,
+    .ad-table.ad-asin-table td:first-child {
+      width: 130px;
+      min-width: 130px;
+      max-width: 130px;
+    }
+
+    .ad-table tbody tr {
+      transition: background 0.12s ease, box-shadow 0.12s ease;
+    }
+
+    .ad-table tbody tr:hover td {
+      background: #eef8f5;
+      box-shadow: inset 0 1px 0 rgba(14, 143, 128, 0.12), inset 0 -1px 0 rgba(14, 143, 128, 0.12);
+    }
+
+    .ad-table tbody tr:hover td:first-child {
+      box-shadow: inset 3px 0 0 #0e8f80, inset 0 1px 0 rgba(14, 143, 128, 0.12), inset 0 -1px 0 rgba(14, 143, 128, 0.12);
+      color: var(--teal-dark);
+      font-weight: 900;
+    }
+
+    .ad-copy-cell {
+      cursor: copy;
+    }
+
+    .ad-copy-cell:hover {
+      text-decoration: none;
+    }
+
+    .ad-table-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 8px;
+    }
+
+    .ad-table-title {
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 900;
+    }
+
+    .ad-export-btn {
+      height: 28px;
+      border: 1px solid #b9ded4;
+      border-radius: 7px;
+      background: #e8f6f1;
+      color: var(--teal-dark);
+      padding: 0 10px;
+      font-size: 12px;
+      font-weight: 900;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .ad-export-btn:hover {
+      border-color: #78c9b2;
+      background: #dff4ef;
+    }
+
+    .map-section {
+      border-top: 1px solid var(--line);
+      background: #fbfdfe;
+    }
+
+    .map-layout {
+      display: grid;
+      grid-template-columns: minmax(780px, 1.5fr) minmax(420px, 0.65fr);
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .map-card {
+      position: relative;
+      min-height: 540px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+      background: #f7fafc;
+    }
+
+    .order-map {
+      width: 100%;
+      height: 540px;
+      display: block;
+      background: #f7fafc;
+      cursor: grab;
+      touch-action: none;
+      user-select: none;
+    }
+
+    .order-map.dragging {
+      cursor: grabbing;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      display: inline-flex;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 8px 20px rgba(16, 32, 43, 0.08);
+      z-index: 2;
+    }
+
+    .map-controls button {
+      width: 34px;
+      height: 32px;
+      border: 0;
+      border-right: 1px solid var(--line);
+      background: transparent;
+      color: var(--ink);
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .map-controls button:last-child {
+      border-right: 0;
+      width: 48px;
+      font-size: 12px;
+    }
+
+    .map-controls button:hover {
+      background: var(--blue-soft);
+      color: var(--blue);
+    }
+
+    .map-land {
+      fill: #f7f9fb;
+      stroke: #c7d1d7;
+      stroke-width: 1.2;
+    }
+
+    .map-line {
+      fill: none;
+      stroke: #d8e1e6;
+      stroke-width: 1;
+    }
+
+    .map-region {
+      fill: #f8fafc;
+      stroke: #c5d0d6;
+      stroke-width: 0.7;
+      vector-effect: non-scaling-stroke;
+      transition: fill 140ms ease, opacity 140ms ease;
+    }
+
+    .map-region.has-orders {
+      stroke: #ffffff;
+      stroke-width: 0.9;
+      cursor: grab;
+    }
+
+    .order-map.dragging .map-region.has-orders {
+      cursor: grabbing;
+    }
+
+    .map-region.has-orders:hover {
+      opacity: 0.78;
+    }
+
+    .map-dot {
+      stroke: #ffffff;
+      stroke-width: 2;
+      cursor: pointer;
+      transition: opacity 120ms ease, transform 120ms ease;
+    }
+
+    .map-dot:hover {
+      opacity: 0.82;
+    }
+
+    .map-label {
+      fill: #254556;
+      stroke: rgba(255, 255, 255, 0.86);
+      stroke-width: 3px;
+      paint-order: stroke;
+      font-size: 10px;
+      font-weight: 900;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: central;
+      letter-spacing: 0;
+    }
+
+    .map-label.strong {
+      fill: #ffffff;
+      stroke: rgba(6, 82, 66, 0.48);
+    }
+
+    .map-empty {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-weight: 800;
+      background: rgba(255, 255, 255, 0.64);
+    }
+
+    .map-empty[hidden] {
+      display: none;
+    }
+
+    .map-legend {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      display: flex;
+      align-items: end;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(255, 255, 255, 0.86);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px 10px;
+    }
+
+    .map-legend-bar {
+      width: 10px;
+      height: 92px;
+      border-radius: 999px;
+      background: linear-gradient(0deg, #e7f7ee, #65d18c, #087f5b);
+    }
+
+    .location-panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      min-height: 540px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .location-summary {
+      padding: 14px 14px 10px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 800;
+    }
+
+    .location-summary span {
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .location-list {
+      overflow: auto;
+      max-height: 490px;
+    }
+
+    .location-row {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) 54px 54px;
+      gap: 8px;
+      align-items: center;
+      padding: 9px 12px;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+
+    .location-row:hover {
+      background: #f8fbfc;
+    }
+
+    .location-rank {
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .location-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .location-count,
+    .location-share {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 800;
+    }
+
+    .location-share {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .time-section {
+      border-top: 1px solid var(--line);
+      background: #fff;
+    }
+
+    .inventory-section {
+      border-top: 1px solid var(--line);
+      background: #fbfdfe;
+    }
+
+    .inventory-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .inventory-controls {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .inventory-filter-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .inventory-search {
+      width: var(--filter-input-width);
+      max-width: 100%;
+      height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 0 12px;
+      outline: none;
+      background: #fff;
+      color: var(--ink);
+    }
+
+    .inventory-risk-tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .inventory-risk-tabs button {
+      height: 32px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 10px;
+      background: #fff;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .inventory-risk-tabs button.active {
+      border-color: #0e8f80;
+      background: #e8f6f1;
+      color: #087f5b;
+    }
+
+    .inventory-summary {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .inventory-metric {
+      min-height: 100px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .inventory-metric label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .inventory-metric strong {
+      display: block;
+      margin-top: 8px;
+      color: #0c2e48;
+      font-size: 22px;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .inventory-metric span {
+      display: block;
+      margin-top: 8px;
+      color: #087f5b;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .inventory-metric.warn span { color: #d97706; }
+    .inventory-metric.danger span { color: #c92a2a; }
+
+    .inventory-table-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .inventory-table-wrap {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: auto;
+      background: #fff;
+      max-height: 680px;
+    }
+
+    .inventory-table {
+      min-width: 1320px;
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      font-size: 13px;
+    }
+
+    .inventory-table th {
+      cursor: pointer;
+    }
+
+    .inventory-table th.no-sort {
+      cursor: default;
+    }
+
+    .inventory-product-cell {
+      display: grid;
+      grid-template-columns: 48px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      width: 390px;
+    }
+
+    .inventory-thumb {
+      width: 48px;
+      height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #f2f6f7;
+      object-fit: contain;
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .inventory-asin {
+      border: 0;
+      padding: 0;
+      background: transparent;
+      color: #1f6fae;
+      font-family: "Cascadia Mono", "Consolas", monospace;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+      text-align: left;
+    }
+
+    .inventory-title {
+      display: -webkit-box;
+      max-width: 330px;
+      margin-top: 4px;
+      overflow: hidden;
+      color: var(--ink);
+      text-decoration: none;
+      line-height: 1.35;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
+    }
+
+    .inventory-id {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .inventory-num {
+      color: #0c2e48;
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .inventory-muted {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .inventory-tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      max-width: 190px;
+    }
+
+    .inventory-tag {
+      border-radius: 999px;
+      padding: 3px 8px;
+      background: #edf5f5;
+      color: #087f5b;
+      font-size: 11px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .inventory-tag.low { background: #fff4df; color: #d97706; }
+    .inventory-tag.aged,
+    .inventory-tag.fee { background: #fef2f2; color: #c92a2a; }
+    .inventory-tag.slow { background: #eef2f7; color: #526171; }
+    .inventory-tag.ok { background: #eaf8f2; color: #1f9d65; }
+
+    .inventory-cost-input {
+      width: 86px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 0 8px;
+      text-align: right;
+      font-weight: 800;
+    }
+
+    .inventory-age-bar {
+      width: 260px;
+      height: 16px;
+      border: 1px solid #dce8e9;
+      border-radius: 999px;
+      overflow: hidden;
+      display: flex;
+      background: #edf3f4;
+    }
+
+    .inventory-age-seg { height: 100%; min-width: 2px; }
+    .inventory-a0 { background: #38bdf8; }
+    .inventory-a1 { background: #14b8a6; }
+    .inventory-a2 { background: #f59e0b; }
+    .inventory-a3 { background: #ef7d22; }
+    .inventory-a4 { background: #dc2626; }
+    .inventory-a5 { background: #7f1d1d; }
+
+    .inventory-age-text {
+      margin-top: 5px;
+      color: var(--muted);
+      font-size: 11px;
+      white-space: nowrap;
+    }
+
+    .inventory-empty {
+      padding: 28px;
+      text-align: center;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .time-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfdfe;
+      padding: 16px;
+    }
+
+    .time-summary {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .time-chip {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px 14px;
+    }
+
+    .time-chip span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 5px;
+    }
+
+    .time-chip strong {
+      display: block;
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.15;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-chart {
+      display: grid;
+      grid-template-columns: repeat(24, minmax(38px, 1fr));
+      gap: 8px;
+      align-items: end;
+      min-height: 250px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .time-slot {
+      display: grid;
+      grid-template-rows: 24px 178px 20px 18px;
+      gap: 6px;
+      min-width: 38px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .time-value {
+      color: var(--ink);
+      align-self: end;
+      font-size: 12px;
+    }
+
+    .time-bar-track {
+      position: relative;
+      height: 178px;
+      border-radius: 6px;
+      background: #eef5f7;
+      overflow: hidden;
+    }
+
+    .time-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--bar-height);
+      min-height: var(--bar-min-height);
+      border-radius: 6px 6px 2px 2px;
+      background: linear-gradient(180deg, #10a6c8 0%, #13a884 100%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35);
+    }
+
+    .time-slot.empty .time-bar {
+      background: #e4edf1;
+      box-shadow: none;
+    }
+
+    .time-hour {
+      color: #566c78;
+    }
+
+    .time-share {
+      color: #8ba0aa;
+      font-weight: 700;
+    }
+
+    .error {
+      margin: 18px 26px;
+      padding: 14px 16px;
+      border: 1px solid #d28a86;
+      border-radius: 8px;
+      background: #fff5f4;
+      color: #9b2e2b;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      z-index: 20;
+      padding: 10px 14px;
+      border-radius: 8px;
+      background: var(--teal-dark);
+      color: #fff;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(8px);
+      pointer-events: none;
+      transition: opacity 160ms ease, transform 160ms ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .heat-note-editor {
+      position: fixed;
+      z-index: 30;
+      width: min(320px, calc(100vw - 28px));
+      border: 1px solid var(--line-strong);
+      border-radius: 8px;
+      background: #fff;
+      box-shadow: 0 18px 42px rgba(16, 32, 43, 0.18);
+      padding: 12px;
+      display: none;
+    }
+
+    .heat-note-editor.open {
+      display: block;
+    }
+
+    .heat-note-editor label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .heat-note-editor textarea {
+      width: 100%;
+      min-height: 120px;
+      resize: vertical;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 9px 10px;
+      color: var(--ink);
+      font: inherit;
+      font-size: 13px;
+      line-height: 1.45;
+      outline: none;
+    }
+
+    .heat-note-editor textarea:focus {
+      border-color: #78c9b2;
+      box-shadow: 0 0 0 3px rgba(14, 143, 128, 0.12);
+    }
+
+    .heat-note-actions {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .heat-note-save {
+      height: 32px;
+      border: 1px solid #b9ded4;
+      border-radius: 7px;
+      background: #e8f6f1;
+      color: var(--teal-dark);
+      padding: 0 12px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    @media (max-width: 1100px) {
+      .kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      header { align-items: flex-start; flex-direction: column; }
+      .header-actions { justify-content: flex-start; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .table-tools { justify-content: flex-start; }
+      .history-tools { flex-wrap: wrap; }
+      .history-tools .search { width: 100%; }
+      .map-layout { grid-template-columns: 1fr; }
+      .history-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .refund-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .time-summary { grid-template-columns: 1fr; }
+      .inventory-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .ad-summary { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .ad-tables { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 680px) {
+      .shell { padding: 12px; }
+      header, section { padding: 18px; }
+      .kpis { grid-template-columns: 1fr; }
+      .history-summary { grid-template-columns: 1fr; }
+      .refund-summary { grid-template-columns: 1fr; }
+      .refund-tabs { width: 100%; }
+      .refund-tab { flex: 1; }
+      .search { width: 100%; }
+      .header-actions { width: 100%; }
+      .tabs { width: 100%; }
+      .tabs button { flex: 1; min-width: 0; }
+      .refresh-btn { width: 100%; }
+      .inventory-summary { grid-template-columns: 1fr; }
+      .inventory-search { width: 100%; }
+      .ad-summary { grid-template-columns: 1fr; }
+      .asin-col { min-width: 260px; max-width: 260px; }
+      .month-col.month-0 { left: 260px; }
+      .month-col.month-1 { left: 378px; }
+      .delta-col { left: 496px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="page">
+      <header>
+        <div>
+          <h1>ASIN数据监控</h1>
+          <div class="sub" id="subtitle">读取订单报告中...</div>
+        </div>
+        <div class="header-actions">
+          <div class="tabs" id="currencyTabs" aria-label="币种"></div>
+        </div>
+      </header>
+
+      <div id="error"></div>
+
+      <main id="app" hidden>
+        <section class="overview">
+          <div class="section-head">
+            <div>
+              <h2>本月数据</h2>
+              <div class="note" id="overviewNote"></div>
+            </div>
+          </div>
+          <div class="kpis" id="kpis"></div>
+        </section>
+
+        <section>
+          <div class="section-head">
+            <div>
+              <h2>销售热力表</h2>
+              <div class="note" id="tableNote"></div>
+            </div>
+            <div class="table-tools">
+              <div class="legend"><span>每日销售额</span><span class="legend-bar"></span><span>越深越高</span></div>
+              <input class="search" id="search" type="search" placeholder="输入父体或子体 ASIN 筛选，多个用空格或逗号分隔">
+            </div>
+          </div>
+          <div class="table-shell">
+            <table>
+              <thead id="heatHead"></thead>
+              <tbody id="heatBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="inventory-section">
+          <div class="section-head">
+            <div>
+              <h2>库存库龄</h2>
+              <div class="note" id="inventoryNote">读取库存库龄数据中...</div>
+              <div class="inventory-meta">
+                <span id="inventorySnapshotMeta"></span>
+                <span id="inventorySourceMeta"></span>
+              </div>
+            </div>
+            <div class="table-tools inventory-filter-row">
+              <input class="inventory-search" id="inventorySearch" type="search" placeholder="输入父体或子体 ASIN 筛选库存库龄，多个用空格或逗号分隔">
+            </div>
+          </div>
+          <div class="inventory-controls">
+            <div class="inventory-risk-tabs" id="inventoryRiskTabs"></div>
+          </div>
+          <div class="inventory-summary" id="inventorySummary"></div>
+          <div class="inventory-table-head">
+            <span>SKU 库存明细</span>
+            <span id="inventoryRowCount"></span>
+          </div>
+          <div class="inventory-table-wrap">
+            <table class="inventory-table">
+              <thead>
+                <tr>
+                  <th class="no-sort">商品</th>
+                  <th data-inventory-sort="riskScore">风险</th>
+                  <th data-inventory-sort="totalUnits">总库存</th>
+                  <th data-inventory-sort="available">可售</th>
+                  <th data-inventory-sort="reserved">预留/在途</th>
+                  <th data-inventory-sort="unitsShippedT30">30天销量</th>
+                  <th data-inventory-sort="daysOfSupply">可售天数</th>
+                  <th data-inventory-sort="inventoryValue">库存货值</th>
+                  <th class="no-sort">单件成本(RMB)</th>
+                  <th class="no-sort">库龄结构</th>
+                  <th data-inventory-sort="storageFeeNextMonth">费用</th>
+                </tr>
+              </thead>
+              <tbody id="inventoryBody"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="history-section">
+          <div class="section-head">
+            <div>
+              <h2>历史销售数据</h2>
+              <div class="note" id="historyNote">默认展示全部订单的每月销售额，支持输入父体或子体 ASIN 筛选。</div>
+            </div>
+            <div class="table-tools history-tools">
+              <button class="export-btn" id="historyExport" type="button">导出 CSV</button>
+              <input class="search" id="historySearch" type="search" placeholder="输入父体或子体 ASIN 筛选历史销售，多个用空格或逗号分隔">
+            </div>
+          </div>
+          <div class="history-card">
+            <div class="history-summary" id="historySummary"></div>
+            <div class="history-chart" id="historyChart"></div>
+            <div class="history-table-wrap">
+              <table class="history-table">
+                <thead>
+                  <tr class="group-head">
+                    <th colspan="5">整体订单</th>
+                    <th class="group-start" colspan="7">广告数据</th>
+                    <th class="group-start" colspan="2">利润情况</th>
+                  </tr>
+                  <tr class="field-head">
+                    <th class="month-boundary"><button class="history-sort-btn" data-history-sort-key="period" type="button">月份 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="sales" type="button">销售额 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="units" type="button">销量 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="orders" type="button">订单数 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="avgOrderValue" type="button">客单价 <span class="sort-mark"></span></button></th>
+                    <th class="group-start"><button class="history-sort-btn" data-history-sort-key="adImpressions" type="button">广告曝光 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="adClicks" type="button">广告点击 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="adOrders" type="button">广告订单 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="adSales" type="button">广告销售额 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="adSpend" type="button">广告花费 <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="adCtr" type="button">CTR <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="adCvr" type="button">CVR <span class="sort-mark"></span></button></th>
+                    <th class="group-start"><button class="history-sort-btn" data-history-sort-key="adAcos" type="button">ACOS <span class="sort-mark"></span></button></th>
+                    <th><button class="history-sort-btn" data-history-sort-key="tacos" type="button">TACOS <span class="sort-mark"></span></button></th>
+                  </tr>
+                </thead>
+                <tbody id="historyBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="refund-section">
+          <div class="section-head">
+            <div>
+              <h2>退款分析</h2>
+              <div class="note" id="refundNote">读取买家退货与交易退款数据中...</div>
+            </div>
+            <div class="refund-tabs" role="tablist" aria-label="退款数据范围">
+              <button class="refund-tab active" data-refund-tab="recent" type="button" role="tab" aria-selected="true">近期退款</button>
+              <button class="refund-tab" data-refund-tab="historical" type="button" role="tab" aria-selected="false">历史退款</button>
+            </div>
+          </div>
+
+          <div class="refund-card">
+            <div class="refund-panel" id="refundRecentPanel" role="tabpanel">
+              <div class="refund-summary" id="refundRecentSummary"></div>
+              <div class="refund-detail-head">
+                <strong>最近 30 天退款明细</strong>
+                <span id="refundRecentDetailNote"></span>
+              </div>
+              <div class="refund-detail-wrap">
+                <table class="refund-detail-table">
+                  <thead>
+                    <tr>
+                      <th>退款时间</th>
+                      <th>下单时间</th>
+                      <th>退货间隔</th>
+                      <th>订单号</th>
+                      <th>商品</th>
+                      <th>SKU</th>
+                      <th>数量</th>
+                      <th>退款原因</th>
+                      <th>商品处置</th>
+                      <th>处理状态</th>
+                      <th>客户退款金额</th>
+                      <th>店铺净损失</th>
+                      <th>买家留言</th>
+                    </tr>
+                  </thead>
+                  <tbody id="refundRecentBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="refund-panel" id="refundHistoricalPanel" role="tabpanel" hidden>
+              <div class="refund-summary" id="refundHistoricalSummary"></div>
+              <div class="refund-detail-head">
+                <strong>历史退款月度汇总</strong>
+                <span>点击月份查看对应明细</span>
+              </div>
+              <div class="refund-month-wrap">
+                <table class="refund-month-table">
+                  <thead>
+                    <tr>
+                      <th>月份</th>
+                      <th>退款记录</th>
+                      <th>退款件数</th>
+                      <th>退款订单</th>
+                      <th>客户退款金额</th>
+                      <th>店铺净损失</th>
+                      <th>下单时间匹配率</th>
+                      <th>金额匹配订单</th>
+                      <th>平均退货间隔</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="refundMonthBody"></tbody>
+                </table>
+              </div>
+              <div class="refund-detail-head">
+                <strong id="refundHistoryDetailTitle">历史退款明细</strong>
+                <span id="refundHistoryDetailNote"></span>
+              </div>
+              <div class="refund-detail-wrap">
+                <table class="refund-detail-table">
+                  <thead>
+                    <tr>
+                      <th>退款时间</th>
+                      <th>下单时间</th>
+                      <th>退货间隔</th>
+                      <th>订单号</th>
+                      <th>商品</th>
+                      <th>SKU</th>
+                      <th>数量</th>
+                      <th>退款原因</th>
+                      <th>商品处置</th>
+                      <th>处理状态</th>
+                      <th>客户退款金额</th>
+                      <th>店铺净损失</th>
+                      <th>买家留言</th>
+                    </tr>
+                  </thead>
+                  <tbody id="refundHistoryBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="daily-ad-section">
+          <div class="section-head">
+            <div>
+              <h2>每日广告数据</h2>
+              <div class="note" id="dailyAdNote">读取每日广告数据中...</div>
+            </div>
+            <div class="table-tools">
+              <select class="search ad-period-select" id="dailyAdMonth" aria-label="选择每日广告数据月份"></select>
+              <input class="search" id="dailyAdSearch" type="search" placeholder="输入父体或子体 ASIN 筛选，多个用空格或逗号分隔">
+            </div>
+          </div>
+          <div class="daily-ad-table-wrap">
+            <table class="daily-ad-table">
+              <thead>
+                <tr>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="date" type="button">日期 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="impressions" type="button">曝光量 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="clicks" type="button">点击量 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="spend" type="button">广告花费 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="sales" type="button">广告销售额 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="orders" type="button">广告订单量 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="ctr" type="button">点击率 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="cvr" type="button">转化率 <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="acos" type="button">ACOS <span class="sort-mark"></span></button></th>
+                  <th><button class="daily-ad-sort-btn" data-daily-ad-sort-key="tacos" type="button">TACOS <span class="sort-mark"></span></button></th>
+                </tr>
+              </thead>
+              <tbody id="dailyAdBody"></tbody>
+              <tfoot id="dailyAdTotal"></tfoot>
+            </table>
+          </div>
+        </section>
+
+        <section class="ad-section">
+          <div class="section-head">
+            <div>
+              <h2>广告活动及搜索词</h2>
+              <div class="note" id="adNote">读取搜索词展示份额广告报告中...</div>
+            </div>
+            <div class="table-tools">
+              <select class="search ad-period-select" id="adPeriod" aria-label="选择广告数据月份"></select>
+              <input class="search" id="adSearch" type="search" placeholder="输入搜索词 / 投放 / 活动筛选广告表现">
+            </div>
+          </div>
+          <div class="ad-summary" id="adSummary"></div>
+          <div class="ad-tables">
+            <div>
+              <div class="ad-table-head">
+                <div class="ad-table-title" id="adCampaignTitle">广告活动</div>
+                <button class="ad-export-btn" data-ad-export="campaign" type="button">导出</button>
+              </div>
+              <div class="ad-table-wrap">
+                <table class="ad-table">
+                  <thead>
+                    <tr>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="campaign" type="button">广告活动 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="impressions" type="button">曝光 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="clicks" type="button">点击 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="orders" type="button">订单 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="sales" type="button">销售额 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="spend" type="button">花费 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="ctr" type="button">CTR <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="cvr" type="button">CVR <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="campaign" data-ad-sort-key="acos" type="button">ACOS <span class="sort-mark"></span></button></th>
+                    </tr>
+                  </thead>
+                  <tbody id="adCampaignBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <div class="ad-table-head">
+                <div class="ad-table-title" id="adTermTitle">搜索词</div>
+                <button class="ad-export-btn" data-ad-export="term" type="button">导出</button>
+              </div>
+              <div class="ad-table-wrap">
+                <table class="ad-table compact-first">
+                  <thead>
+                    <tr>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="term" type="button">搜索词 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="impressions" type="button">曝光 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="clicks" type="button">点击 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="orders" type="button">订单 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="sales" type="button">销售额 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="spend" type="button">花费 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="ctr" type="button">CTR <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="cvr" type="button">CVR <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="term" data-ad-sort-key="acos" type="button">ACOS <span class="sort-mark"></span></button></th>
+                    </tr>
+                  </thead>
+                  <tbody id="adTermBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <div class="ad-table-head">
+                <div class="ad-table-title" id="adAsinTitle">ASIN</div>
+                <button class="ad-export-btn" data-ad-export="asin" type="button">导出</button>
+              </div>
+              <div class="ad-table-wrap">
+                <table class="ad-table compact-first ad-asin-table">
+                  <thead>
+                    <tr>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="asinTarget" type="button">ASIN <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="impressions" type="button">曝光 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="clicks" type="button">点击 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="orders" type="button">订单 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="sales" type="button">销售额 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="spend" type="button">花费 <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="ctr" type="button">CTR <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="cvr" type="button">CVR <span class="sort-mark"></span></button></th>
+                      <th><button class="ad-sort-btn" data-ad-sort-table="asin" data-ad-sort-key="acos" type="button">ACOS <span class="sort-mark"></span></button></th>
+                    </tr>
+                  </thead>
+                  <tbody id="adAsinBody"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="map-section">
+          <div class="section-head">
+            <div>
+              <h2>订单地图</h2>
+              <div class="note" id="mapNote">默认展示全部订单地点来源，输入 ASIN 后仅看该 ASIN。</div>
+            </div>
+            <div class="table-tools">
+              <input class="search" id="mapSearch" type="search" placeholder="输入父体或子体 ASIN 筛选订单地点，多个用空格或逗号分隔">
+            </div>
+          </div>
+          <div class="map-layout">
+            <div class="map-card">
+              <svg class="order-map" id="orderMap" viewBox="0 0 1000 640" role="img" aria-label="订单来源地图"></svg>
+              <div class="map-controls" aria-label="地图缩放">
+                <button id="mapZoomIn" type="button" title="放大">+</button>
+                <button id="mapZoomOut" type="button" title="缩小">-</button>
+                <button id="mapZoomReset" type="button" title="重置">重置</button>
+              </div>
+              <div class="map-legend"><span id="mapMin">0</span><span class="map-legend-bar"></span><span id="mapMax">0</span></div>
+              <div class="map-empty" id="mapEmpty" hidden>没有匹配的订单地点</div>
+            </div>
+            <aside class="location-panel">
+              <div class="location-summary">
+                <strong id="locationTotal">总订单量：0</strong>
+                <span id="locationScope">全部 ASIN</span>
+              </div>
+              <div class="location-list" id="locationList"></div>
+            </aside>
+          </div>
+        </section>
+
+        <section class="time-section">
+          <div class="section-head">
+            <div>
+              <h2>时间段分布</h2>
+              <div class="note" id="timeNote">默认展示全部订单，按订单报告 purchase-date 的小时统计。</div>
+            </div>
+            <div class="table-tools">
+              <input class="search" id="timeSearch" type="search" placeholder="输入父体或子体 ASIN 筛选时间段，多个用空格或逗号分隔">
+            </div>
+          </div>
+          <div class="time-card">
+            <div class="time-summary" id="timeSummary"></div>
+            <div class="time-chart" id="timeChart"></div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <div class="heat-note-editor" id="heatNoteEditor" role="dialog" aria-modal="false" aria-labelledby="heatNoteTitle">
+    <label id="heatNoteTitle" for="heatNoteText">运营动作备注</label>
+    <textarea id="heatNoteText" placeholder="记录调价、Coupon、广告调整、Listing 优化、库存异常等动作"></textarea>
+    <div class="heat-note-actions">
+      <button class="heat-note-save" id="heatNoteSave" type="button">保存</button>
+    </div>
+  </div>
+
+  <script src="map-geo.js"></script>
+  <script src="secure-loader.js"></script>
+
+</body>
+</html>
