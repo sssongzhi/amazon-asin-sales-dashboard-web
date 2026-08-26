@@ -2252,104 +2252,6 @@
           </div>
         </section>
 
-        <section class="refund-section">
-          <div class="section-head">
-            <div>
-              <h2>退款分析</h2>
-              <div class="note" id="refundNote">读取买家退货与交易退款数据中...</div>
-            </div>
-            <div class="refund-tabs" role="tablist" aria-label="退款数据范围">
-              <button class="refund-tab active" data-refund-tab="recent" type="button" role="tab" aria-selected="true">近期退款</button>
-              <button class="refund-tab" data-refund-tab="historical" type="button" role="tab" aria-selected="false">历史退款</button>
-            </div>
-          </div>
-
-          <div class="refund-card">
-            <div class="refund-panel" id="refundRecentPanel" role="tabpanel">
-              <div class="refund-summary" id="refundRecentSummary"></div>
-              <div class="refund-detail-head">
-                <strong>最近 30 天退款明细</strong>
-                <span id="refundRecentDetailNote"></span>
-              </div>
-              <div class="refund-detail-wrap">
-                <table class="refund-detail-table">
-                  <thead>
-                    <tr>
-                      <th>退款时间</th>
-                      <th>下单时间</th>
-                      <th>退货间隔</th>
-                      <th>订单号</th>
-                      <th>商品</th>
-                      <th>SKU</th>
-                      <th>数量</th>
-                      <th>退款原因</th>
-                      <th>商品处置</th>
-                      <th>处理状态</th>
-                      <th>客户退款金额</th>
-                      <th>店铺净损失</th>
-                      <th>买家留言</th>
-                    </tr>
-                  </thead>
-                  <tbody id="refundRecentBody"></tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="refund-panel" id="refundHistoricalPanel" role="tabpanel" hidden>
-              <div class="refund-summary" id="refundHistoricalSummary"></div>
-              <div class="refund-detail-head">
-                <strong>历史退款月度汇总</strong>
-                <span>点击月份查看对应明细</span>
-              </div>
-              <div class="refund-month-wrap">
-                <table class="refund-month-table">
-                  <thead>
-                    <tr>
-                      <th>月份</th>
-                      <th>退款记录</th>
-                      <th>退款件数</th>
-                      <th>退款订单</th>
-                      <th>客户退款金额</th>
-                      <th>店铺净损失</th>
-                      <th>下单时间匹配率</th>
-                      <th>金额匹配订单</th>
-                      <th>平均退货间隔</th>
-                      <th>操作</th>
-                    </tr>
-                  </thead>
-                  <tbody id="refundMonthBody"></tbody>
-                </table>
-              </div>
-              <div class="refund-detail-head">
-                <strong id="refundHistoryDetailTitle">历史退款明细</strong>
-                <span id="refundHistoryDetailNote"></span>
-              </div>
-              <div class="refund-detail-wrap">
-                <table class="refund-detail-table">
-                  <thead>
-                    <tr>
-                      <th>退款时间</th>
-                      <th>下单时间</th>
-                      <th>退货间隔</th>
-                      <th>订单号</th>
-                      <th>商品</th>
-                      <th>SKU</th>
-                      <th>数量</th>
-                      <th>退款原因</th>
-                      <th>商品处置</th>
-                      <th>处理状态</th>
-                      <th>客户退款金额</th>
-                      <th>店铺净损失</th>
-                      <th>买家留言</th>
-                    </tr>
-                  </thead>
-                  <tbody id="refundHistoryBody"></tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </section>
-
         <section class="daily-ad-section">
           <div class="section-head">
             <div>
@@ -2515,6 +2417,104 @@
           <div class="time-card">
             <div class="time-summary" id="timeSummary"></div>
             <div class="time-chart" id="timeChart"></div>
+          </div>
+        </section>
+
+        <section class="refund-section">
+          <div class="section-head">
+            <div>
+              <h2>退款分析</h2>
+              <div class="note" id="refundNote">读取买家退货与交易退款数据中...</div>
+            </div>
+            <div class="refund-tabs" role="tablist" aria-label="退款数据范围">
+              <button class="refund-tab active" data-refund-tab="recent" type="button" role="tab" aria-selected="true">近期退款</button>
+              <button class="refund-tab" data-refund-tab="historical" type="button" role="tab" aria-selected="false">历史退款</button>
+            </div>
+          </div>
+
+          <div class="refund-card">
+            <div class="refund-panel" id="refundRecentPanel" role="tabpanel">
+              <div class="refund-summary" id="refundRecentSummary"></div>
+              <div class="refund-detail-head">
+                <strong>最近 30 天退款明细</strong>
+                <span id="refundRecentDetailNote"></span>
+              </div>
+              <div class="refund-detail-wrap">
+                <table class="refund-detail-table">
+                  <thead>
+                    <tr>
+                      <th>退款时间</th>
+                      <th>下单时间</th>
+                      <th>退货间隔</th>
+                      <th>订单号</th>
+                      <th>商品</th>
+                      <th>SKU</th>
+                      <th>数量</th>
+                      <th>退款原因</th>
+                      <th>商品处置</th>
+                      <th>处理状态</th>
+                      <th>客户退款金额</th>
+                      <th>店铺净损失</th>
+                      <th>买家留言</th>
+                    </tr>
+                  </thead>
+                  <tbody id="refundRecentBody"></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="refund-panel" id="refundHistoricalPanel" role="tabpanel" hidden>
+              <div class="refund-summary" id="refundHistoricalSummary"></div>
+              <div class="refund-detail-head">
+                <strong>历史退款月度汇总</strong>
+                <span>点击月份查看对应明细</span>
+              </div>
+              <div class="refund-month-wrap">
+                <table class="refund-month-table">
+                  <thead>
+                    <tr>
+                      <th>月份</th>
+                      <th>退款记录</th>
+                      <th>退款件数</th>
+                      <th>退款订单</th>
+                      <th>客户退款金额</th>
+                      <th>店铺净损失</th>
+                      <th>下单时间匹配率</th>
+                      <th>金额匹配订单</th>
+                      <th>平均退货间隔</th>
+                      <th>操作</th>
+                    </tr>
+                  </thead>
+                  <tbody id="refundMonthBody"></tbody>
+                </table>
+              </div>
+              <div class="refund-detail-head">
+                <strong id="refundHistoryDetailTitle">历史退款明细</strong>
+                <span id="refundHistoryDetailNote"></span>
+              </div>
+              <div class="refund-detail-wrap">
+                <table class="refund-detail-table">
+                  <thead>
+                    <tr>
+                      <th>退款时间</th>
+                      <th>下单时间</th>
+                      <th>退货间隔</th>
+                      <th>订单号</th>
+                      <th>商品</th>
+                      <th>SKU</th>
+                      <th>数量</th>
+                      <th>退款原因</th>
+                      <th>商品处置</th>
+                      <th>处理状态</th>
+                      <th>客户退款金额</th>
+                      <th>店铺净损失</th>
+                      <th>买家留言</th>
+                    </tr>
+                  </thead>
+                  <tbody id="refundHistoryBody"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </section>
 
